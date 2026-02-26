@@ -134,6 +134,9 @@ python3 run_pipeline.py --mode full --input "test" --json
 ```
 ├── engine/              → The 11-layer Python brain (2,815 lines)
 ├── skills/              → 52 skill definitions for the TF-IDF router
+├── templates/           → Auto-run rule + workflow templates
+│   ├── antigravity_pipeline.md → The alwaysApply rule (installed per-project)
+│   └── README.md        → Explains what each template does
 ├── workflows/           → YAML workflow graphs
 ├── policy/              → Security rules + policy engine
 ├── docs/                → Deep documentation
@@ -144,6 +147,9 @@ python3 run_pipeline.py --mode full --input "test" --json
 │   ├── ADDING_SKILLS.md → How to feed the TF-IDF router
 │   ├── ENGINE_CODEBASE.md → Developer walkthrough
 │   └── CHANGELOG.md     → P0-P3 upgrade history
+├── cache/               → Runtime guidance cache (auto-populated)
+├── output/              → Pipeline output (auto-populated)
+├── global.yaml          → Global rules configuration
 ├── docker-compose.yml   → Qdrant + Redis + Postgres
 ├── activate.sh          → Per-project activation script
 └── run_pipeline.py      → CLI entrypoint
