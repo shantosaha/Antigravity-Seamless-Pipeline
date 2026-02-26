@@ -1,0 +1,25 @@
+# Scheduler Configuration
+engine: celery
+broker: redis://localhost:6379/0
+backend: redis://localhost:6379/1
+
+priority_levels:
+  critical: 0
+  high: 1
+  medium: 2
+  low: 3
+
+rate_limits:
+  mcp_calls: 100/minute
+  api_requests: 1000/hour
+  file_operations: 50/minute
+
+concurrency:
+  max_workers: 10
+  max_parallel_mcp: 5
+  max_parallel_skills: 8
+  
+retry_policy:
+  max_retries: 3
+  backoff_factor: 2
+  max_backoff_seconds: 60

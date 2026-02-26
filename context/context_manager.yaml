@@ -1,0 +1,23 @@
+# Context Manager Configuration
+token_budget: 190000
+
+scope_levels:
+  project: 50000
+  session: 30000
+  immediate: 10000
+
+pruning_strategy: "relevance_score"
+
+compression:
+  enabled: true
+  method: "semantic_compression"
+  ratio: 0.7
+
+# Priority for context inclusion
+priorities:
+  user_input: 10
+  current_task: 9
+  recent_history: 8
+  domain_knowledge: 7
+  patterns: 6
+  references: 5

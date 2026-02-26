@@ -1,0 +1,49 @@
+# Code Generation Workflow
+name: "code_generation_workflow"
+description: "Generates production-ready code with tests and documentation"
+version: "1.0.0"
+
+graph:
+  start: understand_requirements
+  
+  nodes:
+    understand_requirements:
+      skill: requirement_analysis
+      description: "Analyze and clarify requirements"
+      next:
+        - condition: "has_design"
+          goto: generate_code
+        - condition: "needs_design"
+          goto: create_architecture
+          
+    create_architecture:
+      skill: system_design
+      description: "Design system architecture"
+      next: generate_code
+      
+    generate_code:
+      skill: code_writer
+      description: "Write main code"
+      parallel:
+        - write_main_code
+        - write_tests
+        - write_documentation
+      next: code_review
+      
+    code_review:
+      skill: code_reviewer
+      description: "Review code quality"
+      next:
+        - condition: "approved"
+          goto: end
+        - condition: "needs_revision"
+          goto: generate_code
+          max_iterations: 3
+          
+  end: return_results
+
+timeouts:
+  understand_requirements: 60s
+  create_architecture: 120s
+  generate_code: 300s
+  code_review: 60s

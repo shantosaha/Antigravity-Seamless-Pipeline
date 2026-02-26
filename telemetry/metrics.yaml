@@ -1,0 +1,44 @@
+# Telemetry Configuration
+provider: langfuse
+
+metrics:
+  latency:
+    - total_response_time
+    - mcp_call_time
+    - llm_inference_time
+    - skill_execution_time
+    
+  success_rates:
+    - task_completion_rate
+    - error_rate
+    - retry_count
+    
+  quality:
+    - user_satisfaction
+    - evaluation_scores
+    - hallucination_rate
+    
+  usage:
+    - tokens_consumed
+    - api_calls_made
+    - cache_hit_rate
+    
+  errors:
+    - error_types
+    - error_frequency
+    - error_patterns
+
+dashboards:
+  - name: overview
+    refresh: 1m
+    
+  - name: performance
+    refresh: 5m
+    
+  - name: errors
+    refresh: 1m
+
+alerts:
+  error_rate_threshold: 0.1
+  latency_threshold_seconds: 10
+  token_budget_threshold: 0.9

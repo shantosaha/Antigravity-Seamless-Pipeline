@@ -1,0 +1,29 @@
+# Planner Configuration
+engine: langgraph
+
+strategies:
+  linear:
+    description: "Simple sequential tasks"
+    max_steps: 10
+    
+  parallel:
+    description: "Independent tasks that can run concurrently"
+    max_parallel: 5
+    
+  conditional:
+    description: "Tasks with branching logic"
+    max_depth: 5
+    
+  iterative:
+    description: "Tasks requiring loops and refinement"
+    max_iterations: 3
+
+optimization:
+  enabled: true
+  max_depth: 10
+  prefer_parallel: true
+  cache_plans: true
+
+fallback:
+  use_simple_planner: true
+  timeout_seconds: 30

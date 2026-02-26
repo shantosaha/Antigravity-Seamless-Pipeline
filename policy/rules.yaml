@@ -1,0 +1,50 @@
+# Rules Engine Configuration
+
+hard_constraints:
+  - rule: max_file_size
+    value: 10MB
+    action: reject
+    
+  - rule: timeout
+    value: 30s
+    action: cancel
+    
+  - rule: max_tokens_per_request
+    value: 100000
+    action: reject
+    
+  - rule: no_malicious_code
+    patterns:
+      - "eval("
+      - "exec("
+      - "__import__('os').system"
+      - "subprocess.call"
+    action: block
+
+soft_constraints:
+  - rule: prefer_async
+    action: suggest
+    
+  - rule: add_logging
+    action: suggest
+
+resource_management:
+  auto_shutdown_on_idle: true
+  idle_timeout_minutes: 30
+  power_profile: "dynamic" # options: high_performance, dynamic, power_save
+
+
+domain_rules:
+  software_development:
+    - rule: require_type_hints
+      languages: [python]
+      action: suggest
+      
+    - rule: max_function_length
+      value: 50
+      action: warn
+      
+  content_creation:
+    - rule: cite_sources
+      content_types: [research, medical]
+      action: enforce

@@ -1,0 +1,31 @@
+# Memory Engine Configuration
+engine: mem0
+
+storage:
+  type: vector_db
+  provider: qdrant
+  endpoint: http://localhost:6333
+  
+  # Fallback to file-based if vector DB unavailable
+  fallback:
+    type: filesystem
+    path: ./knowledge/memory/store
+
+memory_types:
+  episodic:
+    retention: 30 days
+    max_entries: 10000
+    
+  semantic:
+    retention: forever
+    embedding_model: text-embedding-3-large
+    
+  procedural:
+    retention: forever
+    min_success_count: 3
+
+personalization:
+  enabled: true
+  learn_preferences: true
+  adapt_tone: true
+  track_success_patterns: true

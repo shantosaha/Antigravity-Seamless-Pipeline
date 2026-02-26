@@ -1,0 +1,46 @@
+# Input Schema Configuration
+
+schemas:
+  code_request:
+    type: object
+    required: [language, task]
+    properties:
+      language:
+        type: string
+        enum: [python, javascript, typescript, rust, go, java]
+      task:
+        type: string
+        minLength: 10
+      context:
+        type: string
+      requirements:
+        type: array
+        items:
+          type: string
+          
+  document_creation:
+    type: object
+    required: [format, content_type]
+    properties:
+      format:
+        type: string
+        enum: [docx, pdf, markdown, html]
+      content_type:
+        type: string
+        enum: [report, blog, documentation, letter]
+      style:
+        type: string
+        enum: [formal, casual, technical]
+        
+  data_analysis:
+    type: object
+    required: [data_source, analysis_type]
+    properties:
+      data_source:
+        type: string
+      analysis_type:
+        type: string
+        enum: [descriptive, diagnostic, predictive, prescriptive]
+      output_format:
+        type: string
+        enum: [report, visualization, summary]

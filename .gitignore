@@ -1,0 +1,27 @@
+# Environment
+.env
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Runtime state (generated during use)
+state/state_store.json
+state/state_v*.json
+state/pipeline_guidance.json
+state/pipeline_report.json
+
+# Cache
+cache/
+
+# Logs
+*.log
+setup.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+Thumbs.db

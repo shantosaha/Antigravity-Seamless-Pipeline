@@ -1,0 +1,36 @@
+# Evaluator Configuration
+
+criteria:
+  quality:
+    completeness: 0.8
+    accuracy: 0.9
+    relevance: 0.85
+    
+  safety:
+    no_harmful_content: required
+    privacy_compliance: required
+    no_bias: preferred
+    
+  performance:
+    response_time: 5s
+    token_efficiency: 0.7
+    
+  domain_specific:
+    code:
+      syntax_valid: required
+      has_tests: preferred
+      documented: preferred
+      
+    medical:
+      cited_sources: required
+      confidence_threshold: 0.9
+      has_disclaimer: required
+
+evaluation_method: "ragas"
+auto_reject_below: 0.6
+log_all_evaluations: true
+
+feedback_loop:
+  enabled: true
+  update_memory: true
+  adjust_policies: false

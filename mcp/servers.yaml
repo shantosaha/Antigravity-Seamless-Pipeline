@@ -1,0 +1,36 @@
+# MCP Servers Configuration
+
+servers:
+  # Core servers (global)
+  - name: filesystem
+    command: npx @modelcontextprotocol/server-filesystem
+    scope: global
+    args:
+      - ${PROJECT_DIR}
+    
+  - name: fetch
+    command: npx @modelcontextprotocol/server-fetch
+    scope: global
+    
+  - name: github
+    command: npx @modelcontextprotocol/server-github
+    scope: global
+    env:
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      
+  # Database servers (project-specific)
+  - name: sqlite
+    command: npx @modelcontextprotocol/server-sqlite
+    scope: project
+    args:
+      - ${PROJECT_DIR}/data.db
+      
+  # Optional servers (commented out by default)
+  # - name: postgres
+  #   command: npx @modelcontextprotocol/server-postgres
+  #   scope: project
+  #   env:
+  #     POSTGRES_HOST: localhost
+  #     POSTGRES_DB: myproject
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
