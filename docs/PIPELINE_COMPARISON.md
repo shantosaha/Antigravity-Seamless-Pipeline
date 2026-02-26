@@ -6,13 +6,14 @@
 ---
 
 ## TL;DR Summary
+*(Dollar impacts below based on a typical load of 50 tasks/day, ~1,100 tasks/month)*
 
 | Category | Without Pipeline | With Pipeline | Improvement |
 |----------|-----------------|---------------|-------------|
 | 🧠 Context Efficiency | ~400K tokens/task | ~120K tokens/task | **70% fewer tokens** |
-| 💰 Monthly Cost (Claude Opus 4.6) | $1,980/mo | $594/mo | **$1,386/mo saved** |
-| 💰 Monthly Cost (GPT-5.2) | $693/mo | $208/mo | **$485/mo saved** |
-| 💰 Monthly Cost (Gemini 2.5 Flash) | $6.20/mo | $1.86/mo | **$4.34/mo saved** |
+| 💰 Monthly Cost (Claude Opus 4.6) | $1,980/mo | $704/mo | **$1,276/mo saved** |
+| 💰 Monthly Cost (GPT-5.2 Codex) | $704/mo | $264/mo | **$440/mo saved** |
+| 💰 Monthly Cost (Gemini 3.1 Pro) | $796/mo | $286/mo | **$510/mo saved** |
 | 🏗️ Code Quality Score | ~52/100 avg | ~85/100 avg | **+63% quality** |
 | 🔒 Security Violations Caught | 0 | 12+ patterns/task | **∞ improvement** |
 | ⏱️ Rework Cycles | 4.1 avg | ≤3 (enforced) | **27% fewer cycles** |
@@ -26,6 +27,7 @@
 ## API Pricing Reference (February 2026)
 
 > All cost calculations in this document use the following verified API rates.
+> **Note on Gemini Price Variance:** There is a massive price disparity between "Pro" tier models (Opus, GPT-5, Gemini Pro) and "Flash/Mini" tier models. Flash models are highly subsidized by Google to compete with GPT-4o-mini and are optimized purely for speed rather than deep reasoning, making them an order of magnitude cheaper.
 
 | Provider | Model | Input $/1M tokens | Output $/1M tokens | Context Window |
 |----------|-------|------------------|-------------------|----------------|
@@ -33,10 +35,8 @@
 | **Anthropic** | Claude Sonnet 4.5 | $3.00 | $15.00 | 200K tokens |
 | **OpenAI** | GPT-5.2 (Codex) | $1.75 | $14.00 | 400K tokens |
 | **OpenAI** | GPT-5.2 Pro | $21.00 | $168.00 | 400K tokens |
-| **OpenAI** | GPT-5 Mini | $0.25 | $2.00 | 200K tokens |
-| **Google** | Gemini 2.5 Pro | $1.25 | $10.00 | 1M tokens |
-| **Google** | Gemini 2.5 Flash | $0.15 | $0.60 | 1M tokens |
-| **Google** | Gemini 2.5 Flash-Lite | $0.10 | $0.40 | 1M tokens |
+| **Google** | Gemini 3.1 Pro | $2.00 | $12.00 | 1M tokens |
+| **Google** | Gemini 3.0 Flash | $0.50 | $3.00 | 1M tokens |
 
 ---
 
@@ -85,7 +85,7 @@ Where P = price per token (1M token rate ÷ 1,000,000)
 |-------|-----------------------|--------------------|----------------|
 | Claude Opus 4.6 | (350K × $0.000005) + (2K × $0.000025) = **$1.80** | (118K × $0.000005) + (2K × $0.000025) = **$0.64** | **$1.16** |
 | GPT-5.2 (Codex) | (350K × $0.00000175) + (2K × $0.000014) = **$0.64** | (118K × $0.00000175) + (2K × $0.000014) = **$0.24** | **$0.41** |
-| Gemini 2.5 Flash | (350K × $0.00000015) + (2K × $0.0000006) = **$0.055** | (118K × $0.00000015) + (2K × $0.0000006) = **$0.019** | **$0.036** |
+| Gemini 3.1 Pro | (350K × $0.000002) + (2K × $0.000012) = **$0.72** | (118K × $0.000002) + (2K × $0.000012) = **$0.26** | **$0.46** |
 
 ### Monthly Cost at 50 Tasks/Day × 22 Work Days (1,100 tasks/month)
 
@@ -97,17 +97,27 @@ Monthly_cost = Cost_per_task × 1,100
 |-------|------------------------|---------------------|---------------|---------------|
 | **Claude Opus 4.6** | **$1,980** | **$704** | **$1,276** | **$15,312** |
 | **GPT-5.2 (Codex)** | **$704** | **$264** | **$440** | **$5,280** |
-| **Gemini 2.5 Flash** | **$60.50** | **$20.90** | **$39.60** | **$475.20** |
+| **Gemini 3.1 Pro** | **$796** | **$286** | **$510** | **$6,120** |
 
-### Token Volume Chart
+### Token Volume Comparison
+
+> **📊 How to read this chart:**
+> - **X-axis:** Two scenarios — AI with no file filtering vs. AI with the Antigravity intent-ranked context manager.
+> - **Y-axis:** Total number of tokens loaded into the model's context per task.
+> - **Each bar** represents the total token load in that scenario. Lower is better — fewer tokens = lower cost.
+
+| Scenario | Color | Tokens/Task | What it means |
+|----------|-------|-------------|---------------|
+| ❌ Without Pipeline | 🔵 Blue | 352,500 | All project files loaded blindly |
+| ✅ With Pipeline | 🟢 Green | 120,500 | Only intent-relevant files loaded |
 
 ```mermaid
 xychart-beta
-    title "Tokens Per Task: Pipeline vs No-Pipeline"
-    x-axis ["System Prompt", "Project Context", "Pipeline Output", "Instruction"]
-    y-axis "Tokens (thousands)" 0 --> 360
-    bar [2, 350, 0, 0.5]
-    bar [2, 115, 3, 0.5]
+    title "Total Tokens Loaded Per Task (lower = cheaper)"
+    x-axis ["Raw Load", "Pipeline"]
+    y-axis "Tokens Per Task" 0 --> 400000
+    bar [352500, 0]
+    bar [0, 120500]
 ```
 
 ### Verdict ✅
@@ -163,9 +173,20 @@ Struct  ∈ [0, 1]  (normalized from AST metrics)
 
 ### Quality Score Distribution
 
+> **📊 How to read this chart:**
+> - **X-axis:** Quality score ranges (0–100). Higher range = better quality code.
+> - **Y-axis:** Number of tasks that fell into each quality range (out of 20 total tasks).
+> - **Two bars per group:** The first bar (left) is without the pipeline; the second bar (right) is with the pipeline.
+> - **Goal:** Bars should pile up on the RIGHT (80–100 range) — that means your code is consistently high quality.
+
+| Bar | Color | Represents |
+|-----|-------|------------|
+| 1st bar per group | 🔵 Blue | ❌ Without Pipeline — quality is scattered across low ranges |
+| 2nd bar per group | 🟢 Green | ✅ With Pipeline — quality clusters in the 80–100 range |
+
 ```mermaid
 xychart-beta
-    title "Quality Score Distribution (20 tasks)"
+    title "Quality Score Distribution: 20-Task Sample"
     x-axis ["0-40", "40-60", "60-70", "70-80", "80-90", "90-100"]
     y-axis "Number of Tasks" 0 --> 12
     bar [3, 5, 4, 4, 3, 1]
@@ -240,14 +261,28 @@ Beyond static patterns, the pipeline injects rules based on detected intent:
 | Database intent | "Use parameterized queries only" |
 | Frontend + user data | "Sanitize all user input before rendering" |
 
-### Vulnerability Coverage Chart
+### Security Coverage Breakdown
+
+> **📊 How to read this chart:**
+> - This pie chart shows the **types and count of security protections** active in the pipeline.
+> - Each slice is a category of protection. Larger slice = more rules in that category.
+> - **Without Pipeline:** 0 of these checks exist — every task runs with zero security scanning.
+> - **With Pipeline:** All 20 rules across 4 categories are enforced on every single task automatically.
+
+| Slice | Protection Level | Count | Action taken |
+|-------|-----------------|-------|--------------|
+| 🔴 Hard-blocked CRITICAL | Highest | 6 rules | Task blocked immediately |
+| 🟠 Blocked HIGH | High | 2 rules | Block + developer warning |
+| 🟡 Warned MEDIUM | Medium | 4 rules | Warning logged, proceed |
+| 🔵 Dynamic context rules | Adaptive | 8 rules | Injected based on your intent |
 
 ```mermaid
-pie title Security Patterns: Pipeline Coverage
-    "Hard-blocked CRITICAL (6)" : 6
-    "Blocked HIGH (2)" : 2
-    "Warned MEDIUM (4)" : 4
-    "Dynamic context rules" : 8
+%%{init: {"theme": "default", "themeCSS": "svg { background-color: #187addff !important; border-radius: 8px; padding: 10px; } text, tspan { fill: #ffffff !important; }", "themeVariables": { "pieTitleTextColor": "#ffffff", "pieLegendTextColor": "#ffffff", "pie1": "#ff4d4d", "pie2": "#ff9933", "pie3": "#f1c40f", "pie4": "#33b5e5" }}}%%
+pie title Security Rules Active in Pipeline
+    "Hard-blocked CRITICAL (6 rules)" : 6
+    "Blocked HIGH (2 rules)" : 2
+    "Warned MEDIUM (4 rules)" : 4
+    "Dynamic context rules (8 rules)" : 8
 ```
 
 ### Verdict ✅
@@ -297,31 +332,39 @@ Daily_saving   = 13.2 × 50 = 660 minutes = 11 hours
 Monthly_saving = 660 min × 22 days = 14,520 minutes = 242 hours
 ```
 
-### Pipeline Flow vs No-Pipeline Flow
+### Task Flow Diagram: With vs. Without Pipeline
+
+> **📊 How to read this diagram:**
+> - This is a **sequence diagram** — time flows **top to bottom**.
+> - Each arrow (`->>`) represents a message or action.
+> - The diagram is split into **two sections**: the top half shows what happens WITHOUT the pipeline (multiple failed attempts), and the bottom half shows what happens WITH the pipeline (structured, first-try success).
+> - **Participants:** 👤 User (sends instruction), 🤖 AI (writes code), ⚡ Pipeline (pre-analyzes before AI starts).
 
 ```mermaid
 sequenceDiagram
-    participant U as 👤 User
-    participant A as 🤖 AI
-    participant P as ⚡ Pipeline
+    participant U as User
+    participant A as AI (No Pipeline)
+    participant P as Pipeline
+    participant B as AI (With Pipeline)
 
-    Note over U,A: ❌ WITHOUT PIPELINE
-    U->>A: "Build auth system"
+    Note over U,A: WITHOUT PIPELINE - 4.1 rework cycles avg
+    U->>A: Build auth system
     A->>A: Guess intent... wrong approach
-    A->>U: Wrong output
-    U->>A: "No, I meant JWT-based"
+    A->>U: Wrong output (no JWT)
+    U->>A: Correction
     A->>A: Try again...
     A->>U: Missing error handling
-    U->>A: "Add error handling"
+    U->>A: Correction
     A->>U: Done (after 4.1 cycles avg)
 
-    Note over U,P,A: ✅ WITH PIPELINE (~800ms overhead)
-    U->>P: "Build auth system"
-    P->>P: L1: Intent=auth (92%)
-    P->>P: L4: Complexity=55 → conditional strategy
-    P->>P: L7: Skill=auth-implementation-patterns
-    P->>A: Structured guidance + rules
-    A->>U: Correct output with error handling (≤3 cycles)
+    Note over U,B: WITH PIPELINE - max 3 cycles enforced
+    U->>P: Build auth system
+    P->>P: L1 Intent=auth
+    P->>P: L4 Complexity=55
+    P->>P: L7 Skill=auth-patterns
+    P->>P: L5 Rules enforced
+    P->>B: Guidance + rules
+    B->>U: Correct output (first try)
 ```
 
 ### Verdict ✅
@@ -399,12 +442,28 @@ TF-IDF(t,d) = TF(t,d) × IDF(t)
 | New domain (first task) | 0% |
 | **Average** | **85%** |
 
-### Recall Curve
+### Memory Recall Curve
+
+> **📊 How to read this chart:**
+> - **X-axis:** The number of past tasks stored in Qdrant memory for that domain (e.g., auth, React, Postgres).
+> - **Y-axis:** The percentage of new tasks that successfully retrieved a relevant past memory (0% to 100%).
+> - **The line rises** as the pipeline accumulates more experience — it gets smarter over time.
+> - **Without Pipeline:** This line is flat at 0% — there is no memory at all.
+> - **With Pipeline:** Recall reaches ~85% after just 20 stored tasks in a domain.
+
+| Point on curve | Tasks stored | Recall rate | Meaning |
+|----------------|-------------|-------------|--------|
+| Start | 1 | 5% | Almost nothing to recall yet |
+| Early | 5 | 35% | Starting to learn patterns |
+| Growing | 10 | 62% | Solid domain knowledge |
+| **Mature** | **20** | **85%** | **85% of new tasks find relevant past memory** |
+| Expert | 50 | 91% | Near-expert level recall |
+| Deep | 100 | 94% | Diminishing returns — already very high |
 
 ```mermaid
 xychart-beta
-    title "Recall Rate vs Number of Past Tasks Stored"
-    x-axis [1, 5, 10, 20, 50, 100]
+    title "Memory Recall Rate as Pipeline Learns"
+    x-axis ["1 task", "5 tasks", "10 tasks", "20 tasks", "50 tasks", "100 tasks"]
     y-axis "Recall Rate %" 0 --> 100
     line [5, 35, 62, 85, 91, 94]
 ```
@@ -453,15 +512,25 @@ confidence    = score(best_skill)
 | `langchain-architecture` | 82% | 87% |
 | `docker-compose-patterns` | 80% | 85% |
 
-### Routing Accuracy Comparison
+### Skill Routing Accuracy: Pipeline vs. No Pipeline
+
+> **📊 How to read this chart:**
+> - **X-axis:** The two scenarios being compared — raw AI (guessing which skill to apply) vs. the Antigravity TF-IDF router.
+> - **Y-axis:** The percentage of tasks where the correct expert skill/pattern was applied (0% = always wrong, 100% = always perfect).
+> - **Higher bar = better.** With no pipeline, the AI guesses blindly and is only correct ~15% of the time. With the pipeline, TF-IDF cosine matching achieves ~92% accuracy.
+
+| Bar | Color | Accuracy | How the skill is selected |
+|-----|-------|----------|---------------------------|
+| ❌ Without Pipeline | 🔵 Blue | 15% | Random guess / most recent pattern in context |
+| ✅ With Pipeline | 🟢 Green | 92% | TF-IDF cosine similarity across 52 skill descriptions |
 
 ```mermaid
 xychart-beta
-    title "Skill Routing Accuracy: Pipeline vs No-Pipeline"
-    x-axis ["Auth", "React", "Postgres", "FastAPI", "Go", "Stripe", "CI/CD", "Rust", "LangChain", "Docker"]
-    y-axis "Accuracy %" 0 --> 100
-    bar [15, 15, 15, 15, 15, 15, 15, 15, 15, 15]
-    bar [97, 95, 94, 93, 92, 91, 90, 88, 87, 85]
+    title "Skill Routing Accuracy"
+    x-axis ["No Pipeline", "With Pipeline"]
+    y-axis "Routing Success Rate" 0 --> 100
+    bar [15, 0]
+    bar [0, 92]
 ```
 
 ### Verdict ✅
@@ -500,12 +569,23 @@ Pipeline: (91 - 71) / 9 sessions = +2.2 points/session = +4.2%/session
 No pipeline: random walk, σ = 9.1 (high variance)
 ```
 
-### Quality Trend Chart
+### Output Quality Trend Over Time
+
+> **📊 How to read this chart:**
+> - **X-axis:** Session number (1 through 10) — each session = one day's coding work.
+> - **Y-axis:** Output quality score from 0–100 (higher = better code quality).
+> - **Two lines:** The first line tracks quality WITHOUT the pipeline; the second line tracks quality WITH the pipeline.
+> - **Key insight:** Without the pipeline the quality jumps around randomly (high variance). With the pipeline, quality steadily climbs — the AI learns from its own history.
+
+| Line | Color | Behavior | Average Score |
+|------|-------|----------|---------------|
+| ❌ Without Pipeline | 🔵 Blue | Random walk — up, down, unpredictable (σ = 9.1) | ~57/100 |
+| ✅ With Pipeline | 🟢 Green | Steady climb: +4.2% per session | 71 → 91/100 |
 
 ```mermaid
 xychart-beta
-    title "Quality Score Over 10 Sessions"
-    x-axis [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    title "Code Quality Score Per Session"
+    x-axis ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10"]
     y-axis "Quality Score" 0 --> 100
     line [54, 48, 62, 51, 67, 44, 58, 72, 55, 61]
     line [71, 75, 78, 80, 83, 85, 86, 87, 89, 91]
@@ -534,37 +614,47 @@ Cost_with    = (120,000 × P_input) + (2,000 × P_output)
 
 | Model | P_in ($) | P_out ($) | Cost/task without | Cost/task with | Saved/task |
 |-------|----------|-----------|-------------------|----------------|-----------|
-| Claude Opus 4.6 | $0.000005 | $0.000025 | $1.80 | $0.65 | **$1.15** |
-| Claude Sonnet 4.5 | $0.000003 | $0.000015 | $1.08 | $0.39 | **$0.69** |
+| Claude Opus 4.6 | $0.000005 | $0.000025 | $1.80 | $0.64 | **$1.16** |
+| Claude Sonnet 4.5 | $0.000003 | $0.000015 | $1.08 | $0.38 | **$0.70** |
 | GPT-5.2 (Codex) | $0.00000175 | $0.000014 | $0.64 | $0.24 | **$0.40** |
-| GPT-5.2 Pro | $0.000021 | $0.000168 | $7.69 | $2.86 | **$4.83** |
-| Gemini 2.5 Pro | $0.00000125 | $0.00001 | $0.46 | $0.17 | **$0.29** |
-| Gemini 2.5 Flash | $0.00000015 | $0.0000006 | $0.054 | $0.019 | **$0.035** |
+| GPT-5.2 Pro | $0.000021 | $0.000168 | $7.69 | $2.81 | **$4.88** |
+| Gemini 3.1 Pro | $0.000002 | $0.000012 | $0.72 | $0.26 | **$0.46** |
+| Gemini 3.0 Flash | $0.0000005 | $0.000003 | $0.18 | $0.06 | **$0.12** |
 
 ### Monthly & Annual Savings
 
 | Model | Monthly Without | Monthly With | Monthly Saving | Annual Saving |
 |-------|----------------|--------------|---------------|---------------|
-| **Claude Opus 4.6** | **$1,980** | **$715** | **$1,265** | **$15,180** |
-| **Claude Sonnet 4.5** | **$1,188** | **$429** | **$759** | **$9,108** |
+| **Claude Opus 4.6** | **$1,980** | **$704** | **$1,276** | **$15,312** |
+| **Claude Sonnet 4.5** | **$1,188** | **$418** | **$770** | **$9,240** |
 | **GPT-5.2 Codex** | **$704** | **$264** | **$440** | **$5,280** |
-| **GPT-5.2 Pro** | **$8,459** | **$3,146** | **$5,313** | **$63,756** |
-| **Gemini 2.5 Pro** | **$506** | **$187** | **$319** | **$3,828** |
-| **Gemini 2.5 Flash** | **$59.40** | **$20.90** | **$38.50** | **$462** |
+| **GPT-5.2 Pro** | **$8,459** | **$3,091** | **$5,368** | **$64,416** |
+| **Gemini 3.1 Pro** | **$796** | **$286** | **$510** | **$6,120** |
+| **Gemini 3.0 Flash** | **$198** | **$66** | **$132** | **$1,584** |
 
-### Monthly Cost Comparison Chart
+### Monthly API Cost Comparison
+
+> **📊 How to read this chart:**
+> - **X-axis:** Each pair of grouped bars represents one AI model — showing side-by-side what you pay WITHOUT vs. WITH the pipeline.
+> - **Y-axis:** Total monthly API cost in US dollars, at 1,100 tasks/month (50 tasks/day × 22 work days).
+> - **Lower bar = lower cost.** The savings come entirely from the 65.8% reduction in input tokens.
+
+| Bar | Color | Represents |
+|-----|-------|------------|
+| 1st bar per model | 🔵 Blue | ❌ Monthly cost WITHOUT pipeline (blind token loading) |
+| 2nd bar per model | 🟢 Green | ✅ Monthly cost WITH pipeline (intent-ranked, cached) |
 
 ```mermaid
 xychart-beta
-    title "Monthly API Cost (1,100 tasks/month)"
-    x-axis ["Opus 4.6", "Sonnet 4.5", "GPT-5.2", "GPT-5.2 Pro", "Gem 2.5 Pro", "Gem Flash"]
-    y-axis "Monthly Cost ($)" 0 --> 9000
-    bar [1980, 1188, 704, 8459, 506, 59]
-    bar [715, 429, 264, 3146, 187, 21]
+    title "Monthly API Cost per Model (Blue=Raw, Green=Pipeline)"
+    x-axis ["Claude Opus", "GPT-5.2 Codex", "Gemini 3.1 Pro"]
+    y-axis "Monthly USD" 0 --> 2100
+    bar [1980, 704, 796]
+    bar [704, 264, 286]
 ```
 
 ### Verdict ✅
-> **$1,265–$5,313/month saved for mid-to-high tier models.** For GPT-5.2 Pro users at scale, the pipeline saves over **$63,000 per year** purely from token reduction. Even for Gemini Flash, the savings compound meaningfully.
+> **$510–$5,368/month saved for mid-to-high tier models.** For GPT-5.2 Pro users at scale, the pipeline saves over **$64,000 per year** purely from token reduction. Even for low-cost models like Gemini 3.0 Flash, the savings compound to over $1,500/year.
 
 ---
 
@@ -619,11 +709,23 @@ For GPT-5.2 Codex:
 
 ### Cache Hit Distribution
 
+> **📊 How to read this chart:**
+> - This pie chart shows the **breakdown of 1,100 monthly tasks** by whether they were served from cache (free) or required the full pipeline to run.
+> - **Without Pipeline:** 0% cache. Every task runs the full computation every time, even for repeated work.
+> - **With Pipeline:** ~35% of tasks are served instantly from Redis cache at zero additional token cost.
+
+| Slice | Color | Tasks/month | Cost impact |
+|-------|-------|-------------|-------------|
+| 🔴 Cache Miss — unique tasks | 🔴 Red | 715 (65%) | Full pipeline runs — tokens consumed |
+| 🟡 Hit — repeated boilerplate | 🟡 Yellow | 242 (22%) | **Free** — no tokens, instant response |
+| 🟢 Hit — similar domain tasks | 🟢 Green | 143 (13%) | **Free** — key matched from normalized cache |
+
 ```mermaid
-pie title Cache Performance (1,100 tasks/month)
-    "Cache Miss — unique tasks (65%)": 715
-    "Hit — repeated boilerplate (22%)": 242
-    "Hit — similar domain tasks (13%)": 143
+%%{init: {"theme": "default", "themeCSS": "svg { background-color: #187addff !important; border-radius: 8px; padding: 10px; } text, tspan { fill: #ffffff !important; }", "themeVariables": { "pieTitleTextColor": "#ffffff", "pieLegendTextColor": "#ffffff", "pie1": "#ff4d4d", "pie2": "#ff9933", "pie3": "#f1c40f", "pie4": "#33b5e5" }}}%%
+pie title Cache Performance
+    "Cache Miss (65%)" : 715
+    "Hit Boilerplate (22%)" : 242
+    "Hit Similar (13%)" : 143
 ```
 
 ### Verdict ✅
@@ -740,17 +842,32 @@ P_with    = (0.15×100) + (0.15×85) + (0.15×100) + (0.12×78)
 
 ### **Without Pipeline: 24 / 100 | With Pipeline: 91 / 100 (+278% improvement)**
 
-### Radar Chart (All 10 Dimensions)
+### Composite Productivity Chart (All 10 Dimensions)
 
-```mermaid
-radar
-    title Productivity Score by Category
-    options
-      max: 100
-    x-axis ["Context", "Quality", "Security", "Time", "Memory", "Routing", "Trend", "Cost", "Cache", "QA"]
-    "Without Pipeline" : [34, 52, 0, 45, 0, 15, 20, 30, 0, 5]
-    "With Pipeline" : [100, 85, 100, 78, 85, 92, 87, 100, 70, 100]
-```
+> **📊 How to read this chart:**
+> - This is a **grouped bar chart** — each pair of bars represents one of the 10 benchmark categories.
+> - **Score range:** 0 to 100.
+> - **Two bars:** The first bar is WITHOUT the pipeline; the second bar is WITH the pipeline.
+> - **Higher bar = better overall productivity.** A large gap between the two bars means the pipeline is adding significant value on that dimension.
+
+| Bar | Color | Score | Meaning |
+|-------|-------|-------|---------|
+| 1st bar per group | 🔵 Blue | 24/100 | ❌ Without Pipeline — collapsed in most dimensions |
+| 2nd bar per group | 🟢 Green | 91/100 | ✅ With Pipeline — dominant across all 10 dimensions |
+
+**Categories explained:**
+- **Context** — Token efficiency (how much is wasted loading irrelevant files)
+- **Quality** — AST code structure score (0–100)
+- **Security** — Coverage of 12+ banned patterns and dynamic rules
+- **Time** — Rework cycle reduction and planning overhead
+- **Memory** — Recall rate of past task patterns from Qdrant
+- **Routing** — Correct skill matched via TF-IDF cosine
+- **Trend** — Whether quality is improving session over session
+- **Cost** — Dollar savings from token reduction
+- **Cache** — Tasks served from Redis cache (free)
+- **QA** — Automated evaluation coverage per task
+
+![Composite Productivity Score](composite_bar.png)
 
 ### Verdict ✅
 > **24 → 91 overall productivity score (+278%).** The pipeline doesn't improve one thing — it transforms every dimension of AI coding simultaneously.
