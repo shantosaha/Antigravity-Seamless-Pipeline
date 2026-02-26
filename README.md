@@ -6,6 +6,9 @@
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)
 ![Docker](https://img.shields.io/badge/Docker-Required-blue.svg)
 ![Layers](https://img.shields.io/badge/Layers-11-purple.svg)
+![Productivity](https://img.shields.io/badge/Productivity-+278%25-brightgreen.svg)
+
+> 📊 **[Full Benchmark: Pipeline vs No-Pipeline →](docs/PIPELINE_COMPARISON.md)** — Token savings, real API cost math (Claude/GPT-5/Gemini), security, quality, memory, and a composite productivity score across 11 categories.
 
 ---
 
