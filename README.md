@@ -159,8 +159,9 @@ See the [docs/](docs/) folder for detailed documentation on every component.
 
 ---
 
-## Example Pipeline Output
+## Example Pipeline Lifecycle
 
+### Step 1: PRE-Pipeline (auto-runs, ~800ms)
 ```
 ═════════════════════════════════════════════════
    ANTIGRAVITY PIPELINE — PRE MODE
@@ -181,6 +182,41 @@ See the [docs/](docs/) folder for detailed documentation on every component.
 
    PRE RESULT: ✅ ALL PASSED (9/9) | 832ms
 ═════════════════════════════════════════════════
+```
+
+### Step 2: WORK (AI does the coding)
+The AI follows the workflow graph, informed by pipeline intelligence:
+- **Understand** → Uses intent (auth + web) + 3 past memories
+- **Design** → Architecture (only if complexity ≥ 30)
+- **Generate** → Code + tests + docs (parallel strategy)
+- **Review** → Max 3 cycles (enforced by YAML `max_iterations`)
+
+**Rules auto-enforced:**
+- ❌ No `eval()`, `exec()`, `os.system()`, `pickle.loads()`
+- ❌ No `dangerouslySetInnerHTML`, `innerHTML =`
+- ⚠️ Never log env vars (dynamic rule — `.env` detected)
+- ⚠️ Max 50 lines per function
+- ✅ Error handling + async patterns
+
+### Step 3: POST-Pipeline (auto-runs, ~15ms)
+```
+═══════════════════════════════════════════════
+   ANTIGRAVITY PIPELINE — POST MODE
+═══════════════════════════════════════════════
+   Layer 10 │ ✅ │ Evaluator (AST + TF-IDF)
+            │    │ → Score: 85.2%
+            │    │ → Safety: True (graduated scoring)
+            │    │ → Alignment: 72% (tfidf+keywords)
+            │    │ → Structure: 5 functions, 2 classes (AST)
+            │    │ → Complexity: avg cyclomatic 3.2
+   Layer 11 │ ✅ │ State Store (Versioned)
+            │    │ → State v5 (3 backups)
+            │    │ → Qdrant memory: stored
+            │    │ → Trend: improving (skill: auth)
+            │    │ → File locked: fcntl.flock()
+
+   POST RESULT: ✅ ALL PASSED (2/2) | 12ms
+═══════════════════════════════════════════════
 ```
 
 ---
