@@ -1,27 +1,29 @@
-# Environment
-.env
+# Python
 venv/
 __pycache__/
 *.pyc
-.DS_Store
+*.pyo
+*.pyd
+.Python
 
-# Runtime state (generated during use)
-state/state_store.json
-state/state_v*.json
-state/pipeline_guidance.json
-state/pipeline_report.json
-
-# Cache
+# Runtime State (local only — do NOT commit)
+state/
+telemetry/
 cache/
+input/
+output/
 
-# Logs
-*.log
-setup.log
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
 
 # IDE
 .vscode/
 .idea/
 *.swp
+*.swo
 
-# OS
-Thumbs.db
+# Pipeline local artefacts
+*.log
+*.tmp

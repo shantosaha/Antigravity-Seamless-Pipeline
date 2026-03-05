@@ -6,6 +6,7 @@
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)
 ![Docker](https://img.shields.io/badge/Docker-Required-blue.svg)
 ![Layers](https://img.shields.io/badge/Layers-11-purple.svg)
+![Skills](https://img.shields.io/badge/Skills-87-orange.svg)
 ![Productivity](https://img.shields.io/badge/Productivity-+278%25-brightgreen.svg)
 
 > 📊 **[Full Benchmark: Pipeline vs No-Pipeline →](docs/PIPELINE_COMPARISON.md)** — Token savings, real API cost math (Claude/GPT-5/Gemini), security, quality, memory, and a composite productivity score across 11 categories.
@@ -34,8 +35,9 @@ It is a **pre/post-processing pipeline** that wraps around your AI coding assist
 | 🔒 **12+ Security Rules** | Blocks `eval()`, `exec()`, `pickle.loads()`, `dangerouslySetInnerHTML`, and more — with graduated severity scoring |
 | 💾 **Versioned State** | State files are backed up before every write, with `fcntl.flock()` file locking and automatic rollback on failure |
 | 🏥 **Live Health Probes** | Checks if MCP servers are actually running via `pgrep`, `socket`, and `which` — not just configured |
-| 🎯 **52 Skills** | From `auth-implementation-patterns` to `kubernetes-manifests` to `react-performance-optimization` |
-| ⚡ **Sub-second execution** | Full 11-layer pipeline completes in ~800ms |
+| 🎯 **87 Skills** | From `auth-implementation-patterns` to `theme-factory` to `realtime-systems-engineer` to `mcp-builder` and more |
+| 🔀 **4 Execution Flows** | `new_project`, `new_feature`, `bug_fix`, `learning_request` — each with staged agents and blocking gates |
+| ⚡ **Sub-second execution** | Full 11-layer pipeline completes in ~765ms (Redis cache hits: 3.5ms) |
 
 ---
 
@@ -135,12 +137,12 @@ python3 run_pipeline.py --mode full --input "test" --json
 ## Repository Map
 
 ```
-├── engine/              → The 11-layer Python brain (2,815 lines)
-├── skills/              → 52 skill definitions for the TF-IDF router
+├── engine/              → The 11-layer Python brain (ingress, processing, egress, orchestrator)
+├── skills/              → 87 skill definitions for the TF-IDF router
 ├── templates/           → Auto-run rule + workflow templates
 │   ├── antigravity_pipeline.md → The alwaysApply rule (installed per-project)
 │   └── README.md        → Explains what each template does
-├── workflows/           → YAML workflow graphs
+├── workflows/           → YAML workflow graphs (agent_orchestration.yaml with 4 flows)
 ├── policy/              → Security rules + policy engine
 ├── docs/                → Deep documentation
 │   ├── INSTALLATION.md  → Step-by-step setup guide
@@ -162,9 +164,24 @@ See the [docs/](docs/) folder for detailed documentation on every component.
 
 ---
 
+## Execution Flows
+
+The pipeline routes every task through one of four **named execution flows**, defined in `workflows/agent_orchestration.yaml`:
+
+| Flow | Triggered When | Stages |
+|:---|:---|:---|
+| `new_project` | Building something from scratch | Requirements → Risk → Env → Architecture → Implement → Test → Security → Deploy |
+| `new_feature` | Adding to an existing project | Understand → Design → Generate → Review → Test |
+| `bug_fix` | Fixing broken code | Diagnose → Patch → Verify |
+| `learning_request` | Explaining or teaching something | Retrieve → Synthesize → Explain |
+
+Each stage has named agents, blocking gates (wait-for-approval), and optional parallel execution.
+
+---
+
 ## Example Pipeline Lifecycle
 
-### Step 1: PRE-Pipeline (auto-runs, ~800ms)
+### Step 1: PRE-Pipeline (auto-runs, ~765ms)
 ```
 ═════════════════════════════════════════════════
    ANTIGRAVITY PIPELINE — PRE MODE
