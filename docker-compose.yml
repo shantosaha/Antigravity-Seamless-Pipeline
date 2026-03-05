@@ -1,17 +1,21 @@
 version: '3.8'
 
 services:
-  # Redis for caching and Celery
   redis:
     image: redis:7-alpine
     container_name: antigravity-redis
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data
+      - antigravity-redis-data:/data
+    command: redis-server --appendonly yes
     restart: unless-stopped
-    
-  # Qdrant for vector storage
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   qdrant:
     image: qdrant/qdrant:latest
     container_name: antigravity-qdrant
@@ -19,24 +23,33 @@ services:
       - "6333:6333"
       - "6334:6334"
     volumes:
-      - qdrant-data:/qdrant/storage
+      - antigravity-qdrant-data:/qdrant/storage
     restart: unless-stopped
-    
-  # PostgreSQL (optional)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   postgres:
     image: postgres:15-alpine
     container_name: antigravity-postgres
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: antigravity
       POSTGRES_USER: antigravity
       POSTGRES_PASSWORD: antigravity_password
-    ports:
-      - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - antigravity-postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U antigravity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  redis-data:
-  qdrant-data:
-  postgres-data:
+  antigravity-redis-data:
+  antigravity-qdrant-data:
+  antigravity-postgres-data:

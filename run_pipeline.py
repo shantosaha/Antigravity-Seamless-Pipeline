@@ -100,6 +100,8 @@ def _get_highlights(num: int, data: dict) -> list[str]:
             f"Dynamic rules: {data.get('dynamic_rules_injected', 0)} injected",
             f"Enforced rules: {len(data.get('enforced_rules', []))}"],
         6: [f"Workflow: {data.get('workflow_name', '?')} v{data.get('workflow_version', '?')}",
+            f"Agent mode: {'✅ YES — 32-agent ecosystem' if data.get('agent_mode') else '❌ standard'}",
+            f"Active flow: {data.get('active_flow', 'none')}",
             f"Nodes: {len(data.get('nodes_executed', []))} executed, {data.get('nodes_skipped', 0)} skipped",
             f"Conditions: {data.get('condition_evaluation', 'none')}",
             f"Strategy: {data.get('strategy_used', '?')}"],
@@ -172,6 +174,8 @@ def build_guidance(result: dict) -> dict:
             guidance["enforced_rules"] = data.get("enforced_rules", [])
         elif num == 6:
             guidance["workflow"] = data.get("nodes_executed", [])
+            guidance["agent_mode"] = data.get("agent_mode", False)   # [v5] agent ecosystem
+            guidance["active_flow"] = data.get("active_flow", "")    # [v5] e.g. 'new_feature'
         elif num == 7:
             guidance["skill"] = {
                 "name": data.get("skill_matched", "none"),
@@ -215,6 +219,22 @@ def main() -> int:
     code_output = load_code(args.code_file)
 
     pipeline = Pipeline(BASE_DIR)
+    
+    # Check for project-level workflow toggle
+    vrc_path = os.path.join(os.getcwd(), '.antigravity.vrc')
+    if os.path.exists(vrc_path):
+        try:
+            with open(vrc_path, 'r') as f:
+                config = json.load(f)
+                if config.get('workflow_mode') == 'base':
+                    print(f"\n{'!' * 60}")
+                    print(f"   ! OVERRIDE: BASE WORKFLOW ACTIVE (Skipping Pipeline)")
+                    print(f"{'!' * 60}\n")
+                    # In base mode, we still return a 'success' structure but skip layers
+                    return 0
+        except Exception as e:
+            print(f"Warning: Failed to read .antigravity.vrc: {e}")
+
     result = pipeline.execute(args.input, code_output, mode=args.mode)
 
     if args.json:

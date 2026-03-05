@@ -44,6 +44,29 @@ LEARNING_SESSION → Agent5
 
 ---
 
+## ANTIGRAVITY INTEGRATION
+
+Before making skill decisions, check learned patterns using the Experience API:
+
+```typescript
+import { getRecommendation } from '~/.antigravity/skills/experience_api';
+
+const recommendation = await getRecommendation({
+  task_type: task.type,
+  complexity: task.complexity
+});
+
+if (recommendation.confidence > 0.8) {
+  // Use learned pattern
+  decision = { use: 'SKILL', skill: recommendation.skill };
+} else {
+  // Use standard decision logic
+  decision = await decideSkillUsage(task);
+}
+```
+
+---
+
 ## Orchestration Engine
 
 ### Blocking Gates

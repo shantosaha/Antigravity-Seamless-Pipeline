@@ -152,7 +152,8 @@ def _retrieve_memories(self, text):
 
 ### `SkillRouter` (Layer 7)
 
-- Reads all `SKILL.md` files
+- **[NEW] Local Experience API**: Intercepts routing to query `experiences.json` for 32-Agent confident historical patterns.
+- Reads all `SKILL.md` files for static fallback matching
 - Builds TF-IDF vectors from descriptions
 - Returns top match + secondary match with confidence scores
 
@@ -180,6 +181,7 @@ def _retrieve_memories(self, text):
 
 ### `StateManager` (Layer 11)
 
+- **[NEW] Experience API Trainer**: Injects successful execution logs, tools utilized, and scores back into the 32-agent storage `exp_api.record()` layer.
 - **Versioned writes**: `state_v{N}.json` backup → write → prune old versions
 - **File locking**: `fcntl.flock(f, LOCK_EX)` during writes
 - **Rollback**: If write fails, restore from latest `state_v{N}.json`

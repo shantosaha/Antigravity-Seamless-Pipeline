@@ -94,7 +94,7 @@ Key fields to pay attention to:
 | **L3** | `memories found` — were similar past tasks retrieved? |
 | **L4** | `Complexity` — 0-100. `Strategy` — linear/parallel/conditional |
 | **L6** | `Nodes skipped` — which workflow steps were skipped and why |
-| **L7** | `Skill` + `confidence` — which skill was matched |
+| **L7** | `Experience API` or `Skill` — Did it use a learned pattern or static routing? |
 | **L9** | `Healthy` — how many MCP servers are actually running |
 
 ### Post-Pipeline (Layers 10-11)

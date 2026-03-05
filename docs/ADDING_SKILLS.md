@@ -53,14 +53,15 @@ version: 1.0.0
 
 ---
 
-## How the TF-IDF Router Picks Skills
+## How the Skill Router Picks Skills
 
 When a user says "Build me a GraphQL API with auth":
 
-1. **Vectorize**: The instruction is converted to a TF-IDF character n-gram vector
-2. **Compare**: Each skill's `description` (from frontmatter) is also vectorized
-3. **Rank**: Cosine similarity is computed between instruction vector and every skill vector
-4. **Select**: Highest similarity wins (with confidence %)
+1. **[NEW] Experience API Check**: The router first checks the 32-Agent Experience API to see if a learned pattern exists for this exact task type and complexity. If a match is found with >80% confidence, it overrides the standard router.
+2. **Vectorize**: The instruction is converted to a TF-IDF character n-gram vector.
+3. **Compare**: Each skill's `description` (from frontmatter) is also vectorized.
+4. **Rank**: Cosine similarity is computed between instruction vector and every skill vector.
+5. **Select**: Highest similarity wins (with confidence %).
 
 ### Tips for High Discoverability
 
@@ -132,9 +133,9 @@ Layer 7 also returns a **secondary skill** — the second-best match. This allow
 
 ---
 
-## Included Skills (52)
+## Included Skills (87)
 
-The pipeline ships with 52 pre-built skills:
+The pipeline ships with 87 pre-built skills, including the massive 32-Agent Autonomous Ecosystem:
 
 | Category | Skills |
 |----------|--------|

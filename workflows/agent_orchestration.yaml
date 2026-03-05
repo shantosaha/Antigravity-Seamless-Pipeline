@@ -1,0 +1,329 @@
+## 32-Agent Orchestration — Master Workflow
+## Defines agent chaining, gates, and parallel execution for the full ecosystem.
+
+name: agent_orchestration
+description: Master workflow routing input through the 32-agent ecosystem
+version: 1.0.0
+
+## ─── INPUT CLASSIFICATION ──────────────────────────────────────────────────────
+classification:
+  agent: orchestrator
+  rules:
+    - pattern: ["new project", "build me", "create an app", "from scratch"]
+      flow: new_project
+    - pattern: ["add feature", "new feature", "implement", "add support"]
+      flow: new_feature
+    - pattern: ["bug", "broken", "error", "crash", "doesn't work", "failing"]
+      flow: bug_report
+    - pattern: ["refactor", "clean up", "simplify", "technical debt"]
+      flow: refactor_request
+    - pattern: ["security", "vulnerability", "OWASP", "audit", "penetration"]
+      flow: security_concern
+    - pattern: ["document", "docs", "README", "changelog"]
+      flow: documentation_request
+    - pattern: ["slow", "performance", "optimize", "latency", "load test"]
+      flow: performance_issue
+    - pattern: ["deploy", "ship", "release", "production", "staging"]
+      flow: deployment_request
+    - pattern: ["learn", "explain", "teach", "synthesize", "review week"]
+      flow: learning_request
+
+## ─── FLOW: NEW PROJECT ─────────────────────────────────────────────────────────
+flows:
+  new_project:
+    description: Full greenfield project from idea to deployment
+    stages:
+      - stage: 1
+        name: Requirements & Risk
+        agents: [requirement-clarifier]
+        blocking: true
+
+      - stage: 2
+        name: Planning & Risk Analysis
+        parallel: true
+        agents: [project-planner, risk-detector]
+        blocking: true
+
+      - stage: 3
+        name: Environment & Dependencies
+        agents: [prerequisite-scanner]
+        blocking: false
+
+      - stage: 4
+        name: Dependency Resolution
+        agents: [dependency-solver]
+        blocking: true
+
+      - stage: 5
+        name: Architecture
+        agents: [architect]
+        blocking: true
+
+      - stage: 6
+        name: Task Decomposition
+        agents: [task-decomposer]
+        blocking: false
+
+      - stage: 7
+        name: Skeleton Generation
+        agents: [skeleton-generator]
+        blocking: false
+
+      - stage: 8
+        name: Implementation
+        parallel: true
+        agents:
+          - frontend-ui-engineer
+          - backend-api-engineer
+          - database-implementor
+          - mobile-engineer
+          - devops-infra-coder
+          - algorithm-engineer
+          - ai-feature-builder
+          - cli-scripting-engineer
+          - realtime-systems-engineer
+          - integration-glue-engineer
+        note: Only agents assigned tasks by task-decomposer are activated.
+        blocking: false
+
+      - stage: 9
+        name: Code Review
+        agents: [critic]
+        blocking: true
+        loop_back:
+          on: REVISE
+          target: stage_8
+          max_iterations: 3
+
+      - stage: 10
+        name: Quality & Documentation
+        parallel: true
+        agents: [tester, documenter]
+        blocking: false
+
+      - stage: 11
+        name: Security Audit
+        agents: [security-auditor]
+        blocking: true
+
+      - stage: 12
+        name: Deployment
+        agents: [operator]
+        blocking: false
+
+      - stage: 13
+        name: Context Update
+        agents: [context-memory-manager]
+        blocking: false
+
+  ## ─── FLOW: NEW FEATURE ─────────────────────────────────────────────────────
+  new_feature:
+    description: Add a feature to an existing project
+    stages:
+      - stage: 1
+        name: Scoped Requirements
+        agents: [requirement-clarifier]
+        blocking: true
+
+      - stage: 2
+        name: Architecture Update
+        agents: [architect]
+        blocking: true
+
+      - stage: 3
+        name: Task Decomposition
+        agents: [task-decomposer]
+        blocking: false
+
+      - stage: 4
+        name: Implementation
+        parallel: true
+        agents: [frontend-ui-engineer, backend-api-engineer, database-implementor]
+        note: Only relevant sub-agents activated based on task decomposition.
+        blocking: false
+
+      - stage: 5
+        name: Code Review
+        agents: [critic]
+        blocking: true
+        loop_back:
+          on: REVISE
+          target: stage_4
+          max_iterations: 3
+
+      - stage: 6
+        name: Testing & Docs
+        parallel: true
+        agents: [tester, documenter]
+        blocking: false
+
+      - stage: 7
+        name: Security & Deploy
+        agents: [security-auditor, operator]
+        blocking: true
+
+  ## ─── FLOW: BUG REPORT ──────────────────────────────────────────────────────
+  bug_report:
+    description: Debug and fix a reported bug
+    stages:
+      - stage: 1
+        name: Root Cause Analysis
+        agents: [debugger]
+        blocking: true
+
+      - stage: 2
+        name: Code Review
+        agents: [critic]
+        blocking: true
+        loop_back:
+          on: REVISE
+          target: stage_1
+          max_iterations: 2
+
+      - stage: 3
+        name: Regression Testing
+        agents: [tester]
+        blocking: false
+
+  ## ─── FLOW: REFACTOR REQUEST ────────────────────────────────────────────────
+  refactor_request:
+    description: Clean up and refactor existing code
+    stages:
+      - stage: 1
+        name: Code Audit & Refactor
+        agents: [refactorer]
+        blocking: false
+
+      - stage: 2
+        name: Code Review
+        agents: [critic]
+        blocking: true
+
+      - stage: 3
+        name: Regression Testing
+        agents: [tester]
+        blocking: false
+
+  ## ─── FLOW: SECURITY CONCERN ────────────────────────────────────────────────
+  security_concern:
+    description: Investigate and remediate a security issue
+    stages:
+      - stage: 1
+        name: Security Audit
+        agents: [security-auditor]
+        blocking: true
+
+      - stage: 2
+        name: Remediation
+        parallel: true
+        agents: [backend-api-engineer, frontend-ui-engineer, devops-infra-coder]
+        note: Only agents relevant to the vulnerability are activated.
+        blocking: false
+
+      - stage: 3
+        name: Review & Retest
+        agents: [critic, security-auditor]
+        blocking: true
+
+  ## ─── FLOW: DOCUMENTATION REQUEST ──────────────────────────────────────────
+  documentation_request:
+    description: Create or update documentation
+    stages:
+      - stage: 1
+        name: Documentation
+        agents: [documenter]
+        blocking: false
+
+  ## ─── FLOW: PERFORMANCE ISSUE ───────────────────────────────────────────────
+  performance_issue:
+    description: Profile, benchmark, and optimize
+    stages:
+      - stage: 1
+        name: Profiling & Analysis
+        agents: [performance-engineer]
+        blocking: false
+
+      - stage: 2
+        name: Optimization
+        parallel: true
+        agents: [backend-api-engineer, database-implementor, data-database-architect]
+        blocking: false
+
+      - stage: 3
+        name: Review & Retest
+        agents: [critic, performance-engineer]
+        blocking: true
+
+  ## ─── FLOW: DEPLOYMENT REQUEST ──────────────────────────────────────────────
+  deployment_request:
+    description: Ship to staging or production
+    stages:
+      - stage: 1
+        name: Security Gate
+        agents: [security-auditor]
+        blocking: true
+
+      - stage: 2
+        name: Deployment
+        agents: [operator]
+        blocking: false
+
+  ## ─── FLOW: LEARNING REQUEST ────────────────────────────────────────────────
+  learning_request:
+    description: Weekly learning synthesis
+    stages:
+      - stage: 1
+        name: Synthesis
+        agents: [synthesizer]
+        blocking: false
+
+## ─── BLOCKING GATES ────────────────────────────────────────────────────────────
+blocking_gates:
+  - requirement-clarifier
+  - project-planner
+  - dependency-solver
+  - architect
+  - critic
+  - security-auditor
+
+## ─── AGENT REGISTRY ────────────────────────────────────────────────────────────
+agent_registry:
+  layer_0:
+    - { id: P1, skill: requirement-clarifier }
+    - { id: P2, skill: project-planner }
+    - { id: P3, skill: prerequisite-scanner }
+    - { id: P4, skill: dependency-solver }
+    - { id: P5, skill: skeleton-generator }
+    - { id: P6, skill: context-memory-manager }
+    - { id: P7, skill: risk-detector }
+    - { id: P8, skill: task-decomposer }
+  layer_1:
+    - { id: "1", skill: architect }
+    - { id: "2", skill: implementor-dispatcher }
+    - { id: "3", skill: critic }
+    - { id: "4", skill: debugger }
+    - { id: "5", skill: synthesizer }
+    - { id: "6", skill: operator }
+  layer_2:
+    - { id: 2A, skill: frontend-ui-engineer }
+    - { id: 2B, skill: backend-api-engineer }
+    - { id: 2C, skill: database-implementor }
+    - { id: 2D, skill: mobile-engineer }
+    - { id: 2E, skill: devops-infra-coder }
+    - { id: 2F, skill: algorithm-engineer }
+    - { id: 2G, skill: ai-feature-builder }
+    - { id: 2H, skill: cli-scripting-engineer }
+    - { id: 2I, skill: realtime-systems-engineer }
+    - { id: 2J, skill: integration-glue-engineer }
+  layer_3:
+    - { id: "7", skill: tester }
+    - { id: "8", skill: documenter }
+    - { id: "9", skill: refactorer }
+    - { id: "10", skill: security-auditor }
+  layer_4:
+    - { id: "11", skill: data-database-architect }
+    - { id: "12", skill: api-integration-specialist }
+    - { id: "13", skill: performance-engineer }
+    - { id: "14", skill: ai-ml-integration-specialist }
+  layer_5:
+    - { id: "15", skill: orchestrator }

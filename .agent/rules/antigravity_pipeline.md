@@ -17,12 +17,12 @@ Then read the output and follow:
 - **Layer 4 strategy** → linear / parallel / conditional — structure your work accordingly
 - **Layer 5 rules** → hard violations MUST be fixed, soft suggestions should be applied
 - **Layer 6 skipped nodes** → skip those steps in your work too
-- **Layer 7 skill** → use the matched skill's instructions OR the Experience API learned pattern
+- **Layer 7 skill** → use the matched skill's instructions and capabilities
 - **Layer 3 memories** → reference past similar tasks retrieved from Qdrant
 
 ## Step 2 — Do the Work
 
-Follow the strategy and skill guidance from the pipeline output above. If the Experience API provided a pattern, prioritize it.
+Follow the strategy and skill guidance from the pipeline output above.
 
 ## Step 3 — Post-Pipeline (AFTER work is complete)
 

@@ -27,3 +27,6 @@ output/
 # Pipeline local artefacts
 *.log
 *.tmp
+
+# Third-party extensions
+extensions/

@@ -4,6 +4,18 @@ All optimization tiers applied to the Antigravity Pipeline.
 
 ---
 
+## P4 / v4 — 32-Agent Experience Ecosystem
+
+**Layers upgraded:** 7, 11, Master Orchestrator
+
+| Layer | What Changed |
+|-------|-------------|
+| **L7: Skill Router** | Intercepts static matching to query the Experience API. Overrides decisions with learned patterns if confidence > 0.8. |
+| **L11: State Store** | Actively sends outcome data back to the Experience API (`exp_api.record()`) for continuous agent training. |
+| **Orchestrator** | Agent 15 instruction set natively checks the JSON configurations and pattern recommendations before routing. |
+
+---
+
 ## P3 — Polish & Reliability
 
 **Layers upgraded:** 4, 6, 9, 11

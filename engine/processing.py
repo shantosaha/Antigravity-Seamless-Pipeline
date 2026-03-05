@@ -37,6 +37,12 @@ try:
 except ImportError:
     SKLEARN_OK = False
 
+try:
+    from skills.experience_api import get_experience_api
+    EXP_API_OK = True
+except ImportError:
+    EXP_API_OK = False
+
 
 def _load_yaml(path: str) -> dict:
     if not os.path.exists(path):
@@ -431,6 +437,55 @@ class WorkflowRunner:
         'needs_design': lambda ctx: ctx.get('complexity', 0) >= 30,    # Complex tasks need architecture
         'approved': lambda ctx: True,                                   # Always approve first pass
         'needs_revision': lambda ctx: False,                            # No revision in simulation
+        # Agent ecosystem conditions
+        'is_new_project': lambda ctx: ctx.get('intent_type', '') in ('requirement-clarifier', 'project-planner', 'skeleton-generator'),
+        'needs_security_gate': lambda ctx: ctx.get('intent_type', '') in ('operator', 'devops-infra-coder'),
+        'is_bug_fix': lambda ctx: ctx.get('intent_type', '') in ('debugger',),
+        'is_feature': lambda ctx: ctx.get('intent_type', '') not in ('debugger', 'refactorer', 'documenter', 'tester'),
+        'needs_review': lambda ctx: ctx.get('complexity', 0) >= 20,
+    }
+
+    # Maps Layer 1 intent types → flow names in agent_orchestration.yaml
+    _AGENT_INTENT_MAP = {
+        # Layer 0 intents → new_project flow (these all precede building)
+        'requirement-clarifier': 'new_project',
+        'project-planner':       'new_project',
+        'prerequisite-scanner':  'new_project',
+        'dependency-solver':     'new_project',
+        'skeleton-generator':    'new_project',
+        'task-decomposer':       'new_project',
+        'context-memory-manager': 'new_project',
+        'risk-detector':         'new_project',
+        # Layer 1 foundation agents
+        'architect':             'new_feature',
+        'implementor-dispatcher':'new_feature',
+        'critic':                'refactor_request',
+        'debugger':              'bug_report',
+        'synthesizer':           'learning_request',
+        'operator':              'deployment_request',
+        # Layer 2 implementation agents → new_feature flow
+        'frontend-ui-engineer':      'new_feature',
+        'backend-api-engineer':      'new_feature',
+        'database-implementor':      'new_feature',
+        'mobile-engineer':           'new_feature',
+        'devops-infra-coder':        'deployment_request',
+        'algorithm-engineer':        'new_feature',
+        'ai-feature-builder':        'new_feature',
+        'cli-scripting-engineer':    'new_feature',
+        'realtime-systems-engineer': 'new_feature',
+        'integration-glue-engineer': 'new_feature',
+        # Layer 3 quality agents
+        'tester':           'refactor_request',
+        'documenter':       'documentation_request',
+        'refactorer':       'refactor_request',
+        'security-auditor': 'security_concern',
+        # Layer 4 specialist agents
+        'data-database-architect':    'new_feature',
+        'api-integration-specialist': 'new_feature',
+        'performance-engineer':       'performance_issue',
+        'ai-ml-integration-specialist': 'new_feature',
+        # Layer 5
+        'orchestrator': 'new_project',
     }
 
     def __init__(self, base_dir: str) -> None:
@@ -459,6 +514,8 @@ class WorkflowRunner:
             "executed": True,
             "workflow_name": workflow.get('name', 'unknown'),
             "workflow_version": workflow.get('version', '0.0.0'),
+            "agent_mode": workflow.get('_agent_mode', False),         # [v5]
+            "active_flow": workflow.get('_active_flow', ''),           # [v5]
             "total_nodes": len(workflow.get('graph', {}).get('nodes', {})),
             "nodes_executed": nodes_executed,
             "nodes_skipped": sum(1 for n in nodes_executed if n.get('status') == 'skipped'),
@@ -469,6 +526,38 @@ class WorkflowRunner:
         }
 
     def _load_workflow(self, intent_type: str) -> dict:
+        """[v5] Route agent-ecosystem intents to agent_orchestration.yaml,
+        all other intents to code_generation.yaml."""
+        # Check if this intent maps to the agent ecosystem workflow
+        agent_flow = self._AGENT_INTENT_MAP.get(intent_type)
+        if agent_flow:
+            ag_path = os.path.join(self.workflows_dir, 'agent_orchestration.yaml')
+            wf = _load_yaml(ag_path)
+            if wf:
+                # Inject the specific flow's stages as 'graph.nodes' so the
+                # existing _execute_nodes logic can consume them uniformly.
+                flow_stages = wf.get('flows', {}).get(agent_flow, {}).get('stages', [])
+                nodes = {}
+                for stage in flow_stages:
+                    stage_key = f"stage_{stage['stage']}"
+                    agents = stage.get('agents', [])
+                    nodes[stage_key] = {
+                        'skill': agents[0] if agents else 'unknown',
+                        'description': stage.get('name', ''),
+                        'agents': agents,
+                        'parallel': stage.get('parallel', False),
+                        'blocking': stage.get('blocking', False),
+                        'note': stage.get('note', ''),
+                    }
+                    if stage.get('loop_back'):
+                        nodes[stage_key]['loop_back'] = stage['loop_back']
+                # Stitch nodes into a graph structure for WorkflowRunner compatibility
+                wf['graph'] = {'nodes': nodes}
+                wf['_active_flow'] = agent_flow
+                wf['_agent_mode'] = True
+                return wf
+
+        # Default: code_generation workflow
         type_map = {'code_request': 'code_generation.yaml'}
         filename = type_map.get(intent_type, 'code_generation.yaml')
         return _load_yaml(os.path.join(self.workflows_dir, filename))
@@ -532,6 +621,15 @@ class WorkflowRunner:
                 "parallel_tasks": parallel,
                 "timeout": timeouts.get(node_name, 'none'),
             }
+            # [v5] Preserve agent-ecosystem metadata when running in agent mode
+            if node_config.get('agents'):
+                entry["agents"] = node_config['agents']
+            if node_config.get('blocking'):
+                entry["blocking"] = node_config['blocking']
+            if node_config.get('note'):
+                entry["note"] = node_config['note']
+            if node_config.get('loop_back'):
+                entry["loop_back"] = node_config['loop_back']
             if max_iter:
                 entry["max_iterations"] = max_iter
 
@@ -551,10 +649,10 @@ class WorkflowRunner:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# LAYER 7: Skill Router  [v4: TF-IDF semantic matching + multi-skill]
+# LAYER 7: Skill Router  [v4: Experience API + TF-IDF semantic multi-skill fallback]
 # ═══════════════════════════════════════════════════════════════════════════════
 class SkillRouter:
-    """Routes tasks to skills using TF-IDF semantic similarity."""
+    """Routes tasks to skills using 32-Agent Experience API + TF-IDF semantic fallback."""
 
     def __init__(self, base_dir: str, redis_client=None) -> None:
         self.skills_dir = os.path.join(base_dir, 'skills')
@@ -653,6 +751,21 @@ class SkillRouter:
         intent_type = intent.get('type', '')
         secondary_type = intent.get('secondary_intent', '')
         raw_input = intent.get('raw_input', '')
+
+        # [NEW] Check Experience API first
+        if EXP_API_OK:
+            try:
+                exp_api = get_experience_api()
+                complexity_score = intent.get('word_count', 0)
+                rec = exp_api.get_recommendation({
+                    "task_type": intent_type,
+                    "complexity": "HIGH" if complexity_score > 40 else "MEDIUM" if complexity_score > 15 else "LOW"
+                })
+                if rec.get("confidence", 0) > 0.8 and rec.get("skill") in self.skills:
+                    primary = self.skills[rec["skill"]]
+                    return primary, None, rec["confidence"], 0.0
+            except Exception:
+                pass
 
         # Strategy 1: Direct name match (exact)
         primary = self._match_single(intent_type)

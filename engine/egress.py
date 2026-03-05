@@ -2,7 +2,7 @@
 Antigravity Engine — Egress Layers (9–11)
 Layer 9:  MCP Server Interface  [v4: Live health probes + intent tools]
 Layer 10: Output Evaluator      [v4: AST analysis + TF-IDF alignment + complexity]
-Layer 11: State Store            [v4: Versioned state + file locking + searchable history]
+Layer 11: State Store           [v4: Experience API Integration + Versioned State]
 """
 
 import os
@@ -35,6 +35,12 @@ try:
     SKLEARN_OK = True
 except ImportError:
     SKLEARN_OK = False
+
+try:
+    from skills.experience_api import get_experience_api
+    EXP_API_OK = True
+except ImportError:
+    EXP_API_OK = False
 
 
 def _load_yaml(path: str) -> dict:
@@ -495,10 +501,10 @@ class OutputEvaluator:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# LAYER 11: State Store  [v4: Versioned state + file locking + searchable history]
+# LAYER 11: State Store  [v4: Experience API Integration + Versioned State]
 # ═══════════════════════════════════════════════════════════════════════════════
 class StateManager:
-    """[P3] Versioned state with file locking, trend analysis, and searchable history."""
+    """[v4] Tracks versions, pushes histories to Qdrant, and trains the Experience API."""
 
     MAX_VERSIONS = 3  # [P3] Keep last 3 state versions
 
@@ -634,6 +640,28 @@ class StateManager:
 
                     # [P3] Track version number
                     state['state_version'] = state.get('state_version', 0) + 1
+
+                    # [NEW] Record experience for 32-agent integration
+                    if EXP_API_OK:
+                        try:
+                            exp_api = get_experience_api()
+                            exp_api.record({
+                                "agent": "pipeline",
+                                "task": {
+                                    "type": intent.get('type', 'unknown'),
+                                    "complexity": intent.get('complexity_score', 0)
+                                },
+                                "decision": {
+                                    "type": "SKILL",
+                                    "skillUsed": intent.get('type', 'unknown')
+                                },
+                                "outcome": {
+                                    "success": evaluation.get('passed', False),
+                                    "quality": evaluation.get('overall_score', 0)
+                                }
+                            })
+                        except Exception:
+                            pass
 
                     f.seek(0)
                     f.truncate()

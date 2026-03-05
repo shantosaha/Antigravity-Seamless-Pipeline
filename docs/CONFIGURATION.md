@@ -26,6 +26,39 @@ limits:
 
 ---
 
+## `config.json`
+
+[v4] Master configuration file for the 32-Agent Experience API ecosystem.
+
+```json
+{
+  "experience": {
+    "enabled": true,
+    "storage": {
+      "type": "file",
+      "file": {
+        "enabled": true,
+        "path": "~/.antigravity/state/experiences.json"
+      }
+    },
+    "learning": {
+      "enabled": true,
+      "minExperiencesForPattern": 5,
+      "minConfidenceForRecommendation": 0.8
+    }
+  },
+  "integration": {
+    "layer7_use_learned_skills": true,
+    "layer11_record_experiences": true,
+    "agent15_use_patterns": true
+  }
+}
+```
+
+**Features:** Defines the threshold for learning (at least 5 tasks must succeed to create a pattern) and when a skill overrides static routing (confidence ≥ 0.8).
+
+---
+
 ## `policy/rules.yaml`
 
 Security rules enforced by Layer 5.

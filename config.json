@@ -1,0 +1,22 @@
+{
+    "experience": {
+        "enabled": true,
+        "storage": {
+            "type": "file",
+            "file": {
+                "enabled": true,
+                "path": "~/.antigravity/state/experiences.json"
+            }
+        },
+        "learning": {
+            "enabled": true,
+            "minExperiencesForPattern": 5,
+            "minConfidenceForRecommendation": 0.8
+        }
+    },
+    "integration": {
+        "layer7_use_learned_skills": true,
+        "layer11_record_experiences": true,
+        "agent15_use_patterns": true
+    }
+}

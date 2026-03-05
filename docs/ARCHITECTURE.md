@@ -151,17 +151,18 @@ graph LR
 
 ### Layer 7: Skill Router (`processing.py`)
 
-**Purpose:** Match the best skill using TF-IDF cosine similarity.
+**Purpose:** Match the best skill using Experience API patterns and TF-IDF cosine similarity.
 
 | Input | Output |
 |-------|--------|
 | Intent, instruction | `skill_matched`, `confidence`, `secondary_skill`, `instructions_loaded` |
 
 **How it works:**
-- Reads all `SKILL.md` files from the `skills/` directory
-- Builds TF-IDF vectors from skill descriptions + user instruction
-- Returns the highest cosine similarity match
-- Falls back to keyword matching if TF-IDF is unavailable
+- **[NEW] Experience API Check:** Queries past successful patterns via the 32-Agent memory store. Overrides static matching if confidence >80%.
+- Reads all `SKILL.md` files from the `skills/` directory.
+- Builds TF-IDF vectors from skill descriptions + user instruction.
+- Returns the highest cosine similarity match.
+- Falls back to keyword matching if TF-IDF is unavailable.
 
 ---
 
@@ -209,17 +210,18 @@ graph LR
 
 ### Layer 11: State Store (`egress.py`)
 
-**Purpose:** Persist task history, store memory in Qdrant, log telemetry to Redis.
+**Purpose:** Persist task history, store memory in Qdrant, log telemetry to Redis, and train the Experience API.
 
 | Input | Output |
 |-------|--------|
 | All layer results | `state_version`, `versions_kept`, `trends`, `qdrant_stored`, `redis_stored` |
 
 **Features:**
-- **Versioned state**: Creates `state_v{N}.json` backup before each write (keeps last 3)
-- **File locking**: `fcntl.flock()` exclusive lock prevents concurrent corruption
-- **Rollback**: Automatic restore from latest backup if write fails
-- **Trend analysis**: Tracks average score, improvement rate, most used skill
+- **[NEW] Experience API Training:** Records task success, skill used, and evaluation score back to the 32-Agent learning model.
+- **Versioned state**: Creates `state_v{N}.json` backup before each write (keeps last 3).
+- **File locking**: `fcntl.flock()` exclusive lock prevents concurrent corruption.
+- **Rollback**: Automatic restore from latest backup if write fails.
+- **Trend analysis**: Tracks average score, improvement rate, most used skill.
 
 ---
 
